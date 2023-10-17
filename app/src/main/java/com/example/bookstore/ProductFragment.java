@@ -1,5 +1,7 @@
 package com.example.bookstore;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,6 +13,8 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.gson.Gson;
+
 import java.util.ArrayList;
 import java.util.List;
 public class ProductFragment extends Fragment implements ProductAdapter.IClickAddToCartListener {
@@ -21,9 +25,6 @@ public class ProductFragment extends Fragment implements ProductAdapter.IClickAd
     private RecyclerView rcvProduct;
     private View mView;
     private MainActivity mainActivity;
-    private ProductAdapter productAdapter;
-    private List<Product> productsInCart = new ArrayList<>();
-    private CartAdapter cartAdapter;
     public ProductFragment() {
 
     }
@@ -55,8 +56,8 @@ public class ProductFragment extends Fragment implements ProductAdapter.IClickAd
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(mainActivity);
         rcvProduct.setLayoutManager(linearLayoutManager);
 
-        productAdapter = new ProductAdapter();
-        productAdapter.setData(getListProduct(), new ProductAdapter.IClickAddToCartListener() {
+        mainActivity.productAdapter = new ProductAdapter();
+        mainActivity.productAdapter.setData(mainActivity.productList, new ProductAdapter.IClickAddToCartListener() {
             @Override
             public void onClickAddToCart(final ImageView imgAddToCart, Product product) {
                 AnimationUtil.translateAnimation(mainActivity.getViewAnimation(), imgAddToCart, mainActivity.getViewEndAnimation(), new Animation.AnimationListener() {
@@ -68,8 +69,19 @@ public class ProductFragment extends Fragment implements ProductAdapter.IClickAd
                     public void onAnimationEnd(Animation animation) {
                         product.setAddToCart(true);
                         imgAddToCart.setBackgroundResource(R.drawable.bg_gray_corner_6);
-                        productAdapter.notifyDataSetChanged();
+                        mainActivity.productAdapter.notifyDataSetChanged();
+                        mainActivity.cartList.add(product);
+                        mainActivity.cartAdapter.notifyDataSetChanged();
                         mainActivity.setCountProductInCart(mainActivity.getmCountProduct() + 1);
+
+                        SharedPreferences mPrefs = mainActivity.getPreferences(Context.MODE_PRIVATE);
+                        SharedPreferences.Editor prefsEditor = mPrefs.edit();
+                        Gson gson = new Gson();
+                        String productJson = gson.toJson(mainActivity.productList);
+                        String cartJson = gson.toJson(mainActivity.cartList);
+                        prefsEditor.putString("PRODUCT_LIST", productJson);
+                        prefsEditor.putString("CART_LIST", cartJson);
+                        prefsEditor.commit();
                     }
 
                     @Override
@@ -80,33 +92,9 @@ public class ProductFragment extends Fragment implements ProductAdapter.IClickAd
             }
         });
 
-        rcvProduct.setAdapter(productAdapter);
+        rcvProduct.setAdapter(mainActivity.productAdapter);
         return mView;
     }
-
-    private List<Product> getListProduct() {
-        List<Product> list = new ArrayList<>();
-
-        list.add(new Product(R.drawable.img_1, "Product Name 1", "This is description"));
-        list.add(new Product(R.drawable.img_2, "Product Name 2", "This is description"));
-        list.add(new Product(R.drawable.img_1, "Product Name 1", "This is description"));
-        list.add(new Product(R.drawable.img_2, "Product Name 2", "This is description"));
-        list.add(new Product(R.drawable.img_1, "Product Name 1", "This is description"));
-        list.add(new Product(R.drawable.img_2, "Product Name 2", "This is description"));
-        list.add(new Product(R.drawable.img_1, "Product Name 1", "This is description"));
-        list.add(new Product(R.drawable.img_2, "Product Name 2", "This is description"));
-        list.add(new Product(R.drawable.img_1, "Product Name 1", "This is description"));
-        list.add(new Product(R.drawable.img_2, "Product Name 2", "This is description"));
-        list.add(new Product(R.drawable.img_1, "Product Name 1", "This is description"));
-        list.add(new Product(R.drawable.img_2, "Product Name 2", "This is description"));
-        list.add(new Product(R.drawable.img_1, "Product Name 1", "This is description"));
-        list.add(new Product(R.drawable.img_2, "Product Name 2", "This is description"));
-        list.add(new Product(R.drawable.img_1, "Product Name 1", "This is description"));
-        list.add(new Product(R.drawable.img_2, "Product Name 2", "This is description"));
-
-        return list;
-    }
-
     @Override
     public void onClickAddToCart(ImageView imgAddToCart, Product product) {
         

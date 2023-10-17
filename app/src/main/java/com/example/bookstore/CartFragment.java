@@ -1,11 +1,23 @@
 package com.example.bookstore;
 
+import android.app.Activity;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.widget.ImageView;
 
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.gson.Gson;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -22,6 +34,9 @@ public class CartFragment extends Fragment {
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
+    private MainActivity mainActivity;
+    private RecyclerView rcvCart;
+    private View mView;
 
     public CartFragment() {
         // Required empty public constructor
@@ -46,6 +61,44 @@ public class CartFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_cart, container, false);
+        mView = inflater.inflate(R.layout.fragment_cart, container, false);
+        mainActivity = (MainActivity) getActivity();
+        rcvCart = mView.findViewById(R.id.rcv_cart);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(mainActivity);
+        rcvCart.setLayoutManager(linearLayoutManager);
+        mainActivity.cartAdapter = new CartAdapter();
+
+        mainActivity.cartAdapter.setData(mainActivity.cartList, new CartAdapter.IClickRemoveListener() {
+                        @Override
+                        public void onClickRemove(final ImageView imgAddToCart, Product product)
+                        {
+                            product.setAddToCart(false);
+                            int index = -1;
+                            for (int i = 0; i < mainActivity.productList.size(); ++i) {
+                                if (mainActivity.productList.get(i).getProductId() == product.getProductId()) {
+                                    index =i;
+                                    break;
+                                }
+                            }
+                            mainActivity.productList.get(index).setAddToCart(false);
+                            mainActivity.productAdapter.notifyDataSetChanged();
+                            mainActivity.cartList.remove(product);
+                            mainActivity.cartAdapter.notifyDataSetChanged();
+                            mainActivity.setCountProductInCart(mainActivity.getmCountProduct() - 1);
+
+                            SharedPreferences mPrefs = mainActivity.getPreferences(Context.MODE_PRIVATE);
+                            SharedPreferences.Editor prefsEditor = mPrefs.edit();
+                            Gson gson = new Gson();
+                            String productJson = gson.toJson(mainActivity.productList);
+                            String cartJson = gson.toJson(mainActivity.cartList);
+                            prefsEditor.putString("PRODUCT_LIST", productJson);
+                            prefsEditor.putString("CART_LIST", cartJson);
+                            prefsEditor.commit();
+                        }
+            }
+        );
+
+        rcvCart.setAdapter(mainActivity.cartAdapter);
+        return mView;
     }
 }

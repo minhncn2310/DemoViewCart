@@ -12,16 +12,20 @@ import java.util.List;
 
 public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder> {
     private List<Product> mCartList;
-    public interface IClickAddToCartListener{
-        void onClickAddToCart(ImageView imgAddToCart, Product product);
+    private CartAdapter.IClickRemoveListener iClickRemoveListener;
+    public interface IClickRemoveListener{
+        void onClickRemove(ImageView imgAddToCart, Product product);
     }
-    public CartAdapter(List<Product> cartList) {
+
+    public void setData(List<Product> cartList, CartAdapter.IClickRemoveListener listener) {
         this.mCartList = cartList;
+        this.iClickRemoveListener = listener;
+        notifyDataSetChanged();
     }
     @NonNull
     @Override
     public CartViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.fragment_cart, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_cart, parent, false);
         return new CartViewHolder(view);
     }
 
@@ -34,6 +38,12 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
         holder.imgProduct.setImageResource(product.getResourceId());
         holder.tvProductName.setText(product.getName());
         holder.tvDescription.setText(product.getDescription());
+        holder.imgRemove.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                iClickRemoveListener.onClickRemove(holder.imgRemove, product);
+            }
+        });
     }
 
     @Override
@@ -46,13 +56,14 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
         private ImageView imgProduct;
         private TextView tvProductName;
         private TextView tvDescription;
+        private ImageView imgRemove;
 
         public CartViewHolder(@NonNull View itemView) {
             super(itemView);
-
             imgProduct = itemView.findViewById(R.id.img_product);
             tvProductName = itemView.findViewById(R.id.tv_product_name);
             tvDescription = itemView.findViewById(R.id.tv_description);
+            imgRemove = itemView.findViewById(R.id.img_remove);
         }
     }
 }

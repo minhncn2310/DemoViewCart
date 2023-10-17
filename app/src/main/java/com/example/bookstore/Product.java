@@ -1,15 +1,26 @@
 package com.example.bookstore;
 
 public class Product {
+    public void setProductId(int productId) {
+        this.productId = productId;
+    }
+
+    private int productId;
+
+    public int getProductId() {
+        return productId;
+    }
+
     private int resourceId;
     private String name;
     private String description;
     private boolean isAddToCart;
 
-    public Product(int resourceId, String name, String description) {
+    public Product(int resourceId, String name, String description, int productId) {
         this.resourceId = resourceId;
         this.name = name;
         this.description = description;
+        this.productId = productId;
     }
 
     public int getResourceId() {

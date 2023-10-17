@@ -17,9 +17,6 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
     public interface IClickAddToCartListener{
         void onClickAddToCart(ImageView imgAddToCart, Product product);
     }
-    public interface OnAddToCartListener{
-        void onAddToCart(Product product);
-    }
     public void setData(List<Product> list, IClickAddToCartListener listener) {
         this.mListProduct = list;
         this.iClickAddToCartListener = listener;
@@ -49,7 +46,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
         if (!product.isAddToCart()){
             holder.imgAddToCart.setBackgroundResource(R.drawable.bg_red_corner_6);
         }else {
-            holder.imgAddToCart.setBackgroundResource(R.drawable.bg_red_corner_6);
+            holder.imgAddToCart.setBackgroundResource(R.drawable.bg_gray_corner_6);
         }
 
         holder.imgAddToCart.setOnClickListener(new View.OnClickListener() {

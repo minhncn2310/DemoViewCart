@@ -15,7 +15,7 @@
 <!--        android:text="@string/cart_Fragment" />-->
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/cartRecyclerView"
+        android:id="@+id/rcv_cart"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 

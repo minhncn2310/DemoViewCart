@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">My Application</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="product_Fragment">Product Fragment</string>
+    <string name="cart_Fragment">Cart Fragment</string>
+    <string name="Notice_Fragment">Notice blank Fragment</string>
+
+    <string name="tab_1">Product</string>
+    <string name="tab_2">cart</string>
+    <string name="tab_3">Notice</string>
+
+</resources>

@@ -1,11 +1,22 @@
 package com.example.bookstore;
 
+import android.annotation.SuppressLint;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
+import android.Manifest;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.viewpager.widget.ViewPager;
@@ -14,6 +25,16 @@ import com.aurelhubert.ahbottomnavigation.AHBottomNavigation;
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigationItem;
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigationViewPager;
 import com.aurelhubert.ahbottomnavigation.notification.AHNotification;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.FirebaseOptions;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -31,6 +52,37 @@ public class MainActivity extends AppCompatActivity {
     public List<Product> cartList;
     public CartAdapter cartAdapter;
     private int mCountProduct;
+
+    public boolean flag = false;
+
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel channel = new NotificationChannel("notify", "myNotification", importance);
+            channel.setDescription("This is my notification!!");
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, 101);
+                ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, 102);
+            }
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private void notifyApp(String title, String body) {
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "notify")
+                .setSmallIcon(R.drawable.ic_cart)
+                .setContentTitle(title)
+                .setContentText(body)
+                .setAutoCancel(true);
+
+        NotificationManagerCompat managerCompat = NotificationManagerCompat.from(this);
+        managerCompat.notify(102,builder.build());
+    }
     private List<Product> getListProduct() {
         List<Product> list = new ArrayList<>();
 
@@ -66,15 +118,12 @@ public class MainActivity extends AppCompatActivity {
 
         adapter = new ViewPagerAdapter(getSupportFragmentManager(), FragmentStatePagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
         ahBottomNavigationViewPager.setAdapter(adapter);
-        //allow user can slide to change fragment
         ahBottomNavigationViewPager.setPagingEnabled(true);
 
-        //Declare Fragment
         AHBottomNavigationItem item1 = new AHBottomNavigationItem(R.string.tab_1, R.drawable.ic_product, R.color.color_tab_1);
         AHBottomNavigationItem item2 = new AHBottomNavigationItem(R.string.tab_2, R.drawable.ic_cart, R.color.color_tab_2);
         AHBottomNavigationItem item3 = new AHBottomNavigationItem(R.string.tab_3, R.drawable.ic_noitce, R.color.color_tab_3);
 
-        //add fragment
         ahBottomNavigation.addItem(item1);
         ahBottomNavigation.addItem(item2);
         ahBottomNavigation.addItem(item3);
@@ -100,8 +149,35 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        SharedPreferences mPrefs = getPreferences(MODE_PRIVATE);
-        //mPrefs.edit().clear().commit();
+        createNotificationChannel();
+
+        FirebaseMessaging.getInstance().getToken().addOnCompleteListener(new OnCompleteListener<String>() {
+            @Override
+            public void onComplete(@NonNull Task<String> task) {
+                if(!task.isSuccessful()){
+                    return;
+                }
+                String token = task.getResult();
+                Log.d("Firebase","Token: " + token);
+            }
+        });
+
+        FirebaseDatabase database = FirebaseDatabase.getInstance("https://fir-notification-2e5e7-default-rtdb.asia-southeast1.firebasedatabase.app");
+        DatabaseReference myRef = database.getReference("message");
+        myRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                String value = dataSnapshot.getValue(String.class);
+                if (flag)
+                    notifyApp("Thông báo!!!", "Đặt hàng thành công!!!");
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) {
+            }
+        });
+
+        SharedPreferences mPrefs = getSharedPreferences("loctt12345", MODE_PRIVATE);
         Gson gson = new Gson();
         String productJson = mPrefs.getString("PRODUCT_LIST", null);
         String cartJson = mPrefs.getString("CART_LIST", null);
@@ -114,6 +190,8 @@ public class MainActivity extends AppCompatActivity {
         if (cartJson != null) {
             cartList = gson.fromJson(cartJson, new TypeToken<ArrayList<Product>>() { }.getType());
             setCountProductInCart(cartList.size());
+            if (cartList.size() > 0)
+                notifyApp("Thông báo!!!", "Giỏ hàng đang có sản phẩm, hãy mua ngay nhé!!!");
         }
         else
             cartList = new ArrayList<>();

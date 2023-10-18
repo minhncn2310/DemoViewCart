@@ -8,16 +8,20 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
+import android.widget.Button;
 import android.widget.ImageView;
 
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -36,6 +40,7 @@ public class CartFragment extends Fragment {
     private String mParam2;
     private MainActivity mainActivity;
     private RecyclerView rcvCart;
+    private Button btnOrder;
     private View mView;
 
     public CartFragment() {
@@ -68,6 +73,34 @@ public class CartFragment extends Fragment {
         rcvCart.setLayoutManager(linearLayoutManager);
         mainActivity.cartAdapter = new CartAdapter();
 
+        btnOrder = mView.findViewById(R.id.btnOrder);
+        btnOrder.setOnClickListener(view -> {
+            for (int i = 0; i < mainActivity.productList.size(); ++i) {
+                mainActivity.productList.get(i).setAddToCart(false);
+            }
+            mainActivity.cartList.removeAll(mainActivity.cartList);
+            mainActivity.setCountProductInCart(0);
+            mainActivity.productAdapter.notifyDataSetChanged();
+            mainActivity.cartAdapter.notifyDataSetChanged();
+
+            SharedPreferences mPrefs = mainActivity.getSharedPreferences("loctt12345", Context.MODE_PRIVATE);
+            SharedPreferences.Editor prefsEditor = mPrefs.edit();
+
+            Gson gson = new Gson();
+            String productJson = gson.toJson(mainActivity.productList);
+            String cartJson = gson.toJson(mainActivity.cartList);
+            prefsEditor.putString("PRODUCT_LIST", productJson);
+            prefsEditor.putString("CART_LIST", cartJson);
+
+            prefsEditor.commit();
+
+            FirebaseDatabase database = FirebaseDatabase.getInstance("https://fir-notification-2e5e7-default-rtdb.asia-southeast1.firebasedatabase.app");
+            DatabaseReference myRef = database.getReference("message");
+            mainActivity.flag = true;
+            myRef.setValue("Value: " + String.valueOf((new Random().nextInt())));
+        });
+
+
         mainActivity.cartAdapter.setData(mainActivity.cartList, new CartAdapter.IClickRemoveListener() {
                         @Override
                         public void onClickRemove(final ImageView imgAddToCart, Product product)
@@ -86,7 +119,7 @@ public class CartFragment extends Fragment {
                             mainActivity.cartAdapter.notifyDataSetChanged();
                             mainActivity.setCountProductInCart(mainActivity.getmCountProduct() - 1);
 
-                            SharedPreferences mPrefs = mainActivity.getPreferences(Context.MODE_PRIVATE);
+                            SharedPreferences mPrefs = mainActivity.getSharedPreferences("loctt12345", Context.MODE_PRIVATE);
                             SharedPreferences.Editor prefsEditor = mPrefs.edit();
                             Gson gson = new Gson();
                             String productJson = gson.toJson(mainActivity.productList);

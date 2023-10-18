@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "439279001333",
+    "project_id": "fir-notification-2e5e7",
+    "storage_bucket": "fir-notification-2e5e7.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:439279001333:android:9cb16548e2456eab3cefbc",
+        "android_client_info": {
+          "package_name": "com.example.bookstore"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDfdT8BZy_a5stvcGXmIpy8qkjm_zPdq2M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

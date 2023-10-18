@@ -74,7 +74,7 @@ public class ProductFragment extends Fragment implements ProductAdapter.IClickAd
                         mainActivity.cartAdapter.notifyDataSetChanged();
                         mainActivity.setCountProductInCart(mainActivity.getmCountProduct() + 1);
 
-                        SharedPreferences mPrefs = mainActivity.getPreferences(Context.MODE_PRIVATE);
+                        SharedPreferences mPrefs = mainActivity.getSharedPreferences("loctt12345", Context.MODE_PRIVATE);
                         SharedPreferences.Editor prefsEditor = mPrefs.edit();
                         Gson gson = new Gson();
                         String productJson = gson.toJson(mainActivity.productList);
